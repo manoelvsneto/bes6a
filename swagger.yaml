@@ -466,7 +466,7 @@ components:
         application/json:
           schema: { $ref: '#/components/schemas/ApiError' }
     Conflict:
-      description: Conflito de integridade (ex.: e-mail duplicado)
+      description: Conflito de integridade (ex e-mail duplicado)
       content:
         application/json:
           schema: { $ref: '#/components/schemas/ApiError' }
@@ -592,7 +592,7 @@ components:
           example: 5.0
         escolha:
           type: string
-          description: Escolha realizada (ex.: linha/jogada/slot)
+          description: Escolha realizada (ex. linha/jogada/slot)
           example: "linha-1"
         criadoEm:
           type: string
@@ -641,7 +641,7 @@ components:
           example: 501
         combinacao:
           type: string
-          description: Combinação sorteada (ex.: "A-A-B")
+          description: Combinação sorteada (ex. "A-A-B")
           example: "tigre-tigre-tigre"
         ganhou:
           type: boolean

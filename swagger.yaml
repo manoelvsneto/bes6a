@@ -1,0 +1,697 @@
+openapi: 3.0.3
+info:
+  title: API de Jogo de Aposta (CRUD Básico)
+  version: 1.0.0
+  description: >
+    API REST para gerenciamento de usuários, jogos, apostas e resultados
+    (estilo caça-níquel/jogo do tigrinho). Inclui operações CRUD, paginação
+    básica e esquemas de validação.
+
+servers:
+  - url: https://api.exemplo.com/v1
+    description: Servidor de produção (exemplo)
+  - url: http://localhost:8080/v1
+    description: Servidor local
+
+tags:
+  - name: Usuarios
+    description: Operações com usuários
+  - name: Jogos
+    description: Operações com jogos (rodadas)
+  - name: Apostas
+    description: Operações com apostas
+  - name: Resultados
+    description: Operações com resultados de jogos
+
+paths:
+  /usuarios:
+    get:
+      tags: [Usuarios]
+      summary: Listar usuários
+      parameters:
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/pageSize'
+        - name: busca
+          in: query
+          description: Filtro textual por nome ou email
+          schema: { type: string }
+      responses:
+        '200':
+          description: Lista de usuários
+          headers:
+            X-Total-Count:
+              description: Total de registros no backend
+              schema: { type: integer, format: int64 }
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Usuario' }
+    post:
+      tags: [Usuarios]
+      summary: Criar usuário
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UsuarioCreate' }
+      responses:
+        '201':
+          description: Usuário criado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Usuario' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '409': { $ref: '#/components/responses/Conflict' }
+
+  /usuarios/{id}:
+    get:
+      tags: [Usuarios]
+      summary: Obter usuário por ID
+      parameters:
+        - $ref: '#/components/parameters/idPath'
+      responses:
+        '200':
+          description: Usuário encontrado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Usuario' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    put:
+      tags: [Usuarios]
+      summary: Atualizar usuário (substituição)
+      parameters:
+        - $ref: '#/components/parameters/idPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UsuarioUpdate' }
+      responses:
+        '200':
+          description: Usuário atualizado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Usuario' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    patch:
+      tags: [Usuarios]
+      summary: Atualização parcial do usuário
+      parameters:
+        - $ref: '#/components/parameters/idPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UsuarioPatch' }
+      responses:
+        '200':
+          description: Usuário atualizado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Usuario' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    delete:
+      tags: [Usuarios]
+      summary: Remover usuário
+      parameters:
+        - $ref: '#/components/parameters/idPath'
+      responses:
+        '204':
+          description: Removido com sucesso
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /jogos:
+    get:
+      tags: [Jogos]
+      summary: Listar jogos
+      parameters:
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/pageSize'
+        - name: status
+          in: query
+          description: Filtrar por status do jogo
+          schema: { $ref: '#/components/schemas/JogoStatus' }
+        - name: de
+          in: query
+          description: Data/hora inicial (ISO 8601) para filtro por período
+          schema: { type: string, format: date-time }
+        - name: ate
+          in: query
+          description: Data/hora final (ISO 8601) para filtro por período
+          schema: { type: string, format: date-time }
+      responses:
+        '200':
+          description: Lista de jogos
+          headers:
+            X-Total-Count:
+              description: Total de registros no backend
+              schema: { type: integer, format: int64 }
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Jogo' }
+    post:
+      tags: [Jogos]
+      summary: Criar jogo (abrir rodada)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/JogoCreate' }
+      responses:
+        '201':
+          description: Jogo criado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Jogo' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+
+  /jogos/{id}:
+    get:
+      tags: [Jogos]
+      summary: Obter jogo por ID
+      parameters:
+        - $ref: '#/components/parameters/idPath'
+      responses:
+        '200':
+          description: Jogo encontrado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Jogo' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    put:
+      tags: [Jogos]
+      summary: Atualizar jogo (substituição)
+      parameters:
+        - $ref: '#/components/parameters/idPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/JogoUpdate' }
+      responses:
+        '200':
+          description: Jogo atualizado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Jogo' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    patch:
+      tags: [Jogos]
+      summary: Atualização parcial do jogo
+      parameters:
+        - $ref: '#/components/parameters/idPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/JogoPatch' }
+      responses:
+        '200':
+          description: Jogo atualizado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Jogo' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    delete:
+      tags: [Jogos]
+      summary: Remover jogo
+      parameters:
+        - $ref: '#/components/parameters/idPath'
+      responses:
+        '204':
+          description: Removido com sucesso
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /apostas:
+    get:
+      tags: [Apostas]
+      summary: Listar apostas
+      parameters:
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/pageSize'
+        - name: idUsuario
+          in: query
+          schema: { type: integer, format: int32 }
+        - name: idJogo
+          in: query
+          schema: { type: integer, format: int32 }
+      responses:
+        '200':
+          description: Lista de apostas
+          headers:
+            X-Total-Count:
+              description: Total de registros no backend
+              schema: { type: integer, format: int64 }
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Aposta' }
+    post:
+      tags: [Apostas]
+      summary: Criar aposta
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ApostaCreate' }
+      responses:
+        '201':
+          description: Aposta criada
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Aposta' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /apostas/{id}:
+    get:
+      tags: [Apostas]
+      summary: Obter aposta por ID
+      parameters:
+        - $ref: '#/components/parameters/idPath'
+      responses:
+        '200':
+          description: Aposta encontrada
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Aposta' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    put:
+      tags: [Apostas]
+      summary: Atualizar aposta (substituição)
+      parameters:
+        - $ref: '#/components/parameters/idPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ApostaUpdate' }
+      responses:
+        '200':
+          description: Aposta atualizada
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Aposta' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    patch:
+      tags: [Apostas]
+      summary: Atualização parcial da aposta
+      parameters:
+        - $ref: '#/components/parameters/idPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ApostaPatch' }
+      responses:
+        '200':
+          description: Aposta atualizada
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Aposta' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    delete:
+      tags: [Apostas]
+      summary: Remover aposta
+      parameters:
+        - $ref: '#/components/parameters/idPath'
+      responses:
+        '204':
+          description: Removido com sucesso
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /resultados:
+    get:
+      tags: [Resultados]
+      summary: Listar resultados de jogos
+      parameters:
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/pageSize'
+        - name: idJogo
+          in: query
+          schema: { type: integer, format: int32 }
+      responses:
+        '200':
+          description: Lista de resultados
+          headers:
+            X-Total-Count:
+              description: Total de registros no backend
+              schema: { type: integer, format: int64 }
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Resultado' }
+    post:
+      tags: [Resultados]
+      summary: Registrar resultado de jogo
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ResultadoCreate' }
+      responses:
+        '201':
+          description: Resultado criado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Resultado' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /resultados/{id}:
+    get:
+      tags: [Resultados]
+      summary: Obter resultado por ID
+      parameters:
+        - $ref: '#/components/parameters/idPath'
+      responses:
+        '200':
+          description: Resultado encontrado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Resultado' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    put:
+      tags: [Resultados]
+      summary: Atualizar resultado (substituição)
+      parameters:
+        - $ref: '#/components/parameters/idPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ResultadoUpdate' }
+      responses:
+        '200':
+          description: Resultado atualizado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Resultado' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    patch:
+      tags: [Resultados]
+      summary: Atualização parcial do resultado
+      parameters:
+        - $ref: '#/components/parameters/idPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ResultadoPatch' }
+      responses:
+        '200':
+          description: Resultado atualizado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Resultado' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    delete:
+      tags: [Resultados]
+      summary: Remover resultado
+      parameters:
+        - $ref: '#/components/parameters/idPath'
+      responses:
+        '204':
+          description: Removido com sucesso
+        '404': { $ref: '#/components/responses/NotFound' }
+
+components:
+  parameters:
+    idPath:
+      name: id
+      in: path
+      required: true
+      description: Identificador numérico do recurso
+      schema: { type: integer, format: int32 }
+    page:
+      name: page
+      in: query
+      description: Página (base 1)
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    pageSize:
+      name: pageSize
+      in: query
+      description: Tamanho da página
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 200
+        default: 20
+
+  responses:
+    BadRequest:
+      description: Requisição inválida
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ApiError' }
+    NotFound:
+      description: Recurso não encontrado
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ApiError' }
+    Conflict:
+      description: Conflito de integridade (ex.: e-mail duplicado)
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ApiError' }
+
+  schemas:
+    # ---------- USUARIOS ----------
+    Usuario:
+      type: object
+      description: Representa o jogador/usuário do sistema
+      properties:
+        id:
+          type: integer
+          format: int32
+          description: Identificador único do usuário
+          example: 1001
+        nome:
+          type: string
+          description: Nome completo
+          example: "Ana Silva"
+        email:
+          type: string
+          format: email
+          description: E-mail único para login/contato
+          example: "ana.silva@example.com"
+        saldo:
+          type: number
+          format: double
+          description: Saldo disponível para apostas
+          example: 250.75
+        criadoEm:
+          type: string
+          format: date-time
+          description: Data/hora de criação do cadastro
+        atualizadoEm:
+          type: string
+          format: date-time
+          description: Data/hora da última atualização
+      required: [id, nome, email, saldo, criadoEm]
+    UsuarioCreate:
+      allOf:
+        - type: object
+          properties:
+            nome: { type: string }
+            email: { type: string, format: email }
+            saldo:
+              type: number
+              format: double
+              default: 0.0
+          required: [nome, email]
+    UsuarioUpdate:
+      allOf:
+        - $ref: '#/components/schemas/UsuarioCreate'
+    UsuarioPatch:
+      type: object
+      additionalProperties: false
+      properties:
+        nome: { type: string }
+        email: { type: string, format: email }
+        saldo: { type: number, format: double }
+
+    # ---------- JOGOS ----------
+    JogoStatus:
+      type: string
+      description: Status do jogo
+      enum: [aberto, fechado, processado]
+      example: aberto
+    Jogo:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+          example: 501
+        dataHora:
+          type: string
+          format: date-time
+          description: Data/hora da rodada
+        status:
+          $ref: '#/components/schemas/JogoStatus'
+      required: [id, dataHora, status]
+    JogoCreate:
+      type: object
+      properties:
+        dataHora:
+          type: string
+          format: date-time
+          description: Se omitido, o backend define a hora atual
+        status:
+          $ref: '#/components/schemas/JogoStatus'
+      required: [status]
+    JogoUpdate:
+      allOf:
+        - $ref: '#/components/schemas/JogoCreate'
+    JogoPatch:
+      type: object
+      additionalProperties: false
+      properties:
+        dataHora: { type: string, format: date-time }
+        status: { $ref: '#/components/schemas/JogoStatus' }
+
+    # ---------- APOSTAS ----------
+    Aposta:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+          example: 9001
+        idUsuario:
+          type: integer
+          format: int32
+          description: Referência ao usuário que apostou
+          example: 1001
+        idJogo:
+          type: integer
+          format: int32
+          description: Referência ao jogo (rodada)
+          example: 501
+        valor:
+          type: number
+          format: double
+          description: Valor apostado
+          example: 5.0
+        escolha:
+          type: string
+          description: Escolha realizada (ex.: linha/jogada/slot)
+          example: "linha-1"
+        criadoEm:
+          type: string
+          format: date-time
+      required: [id, idUsuario, idJogo, valor, escolha, criadoEm]
+    ApostaCreate:
+      type: object
+      properties:
+        idUsuario:
+          type: integer
+          format: int32
+        idJogo:
+          type: integer
+          format: int32
+        valor:
+          type: number
+          format: double
+          minimum: 0.01
+        escolha:
+          type: string
+      required: [idUsuario, idJogo, valor, escolha]
+    ApostaUpdate:
+      allOf:
+        - $ref: '#/components/schemas/ApostaCreate'
+    ApostaPatch:
+      type: object
+      additionalProperties: false
+      properties:
+        idUsuario: { type: integer, format: int32 }
+        idJogo: { type: integer, format: int32 }
+        valor: { type: number, format: double, minimum: 0.01 }
+        escolha: { type: string }
+
+    # ---------- RESULTADOS ----------
+    Resultado:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+          example: 3001
+        idJogo:
+          type: integer
+          format: int32
+          description: Referência ao jogo
+          example: 501
+        combinacao:
+          type: string
+          description: Combinação sorteada (ex.: "A-A-B")
+          example: "tigre-tigre-tigre"
+        ganhou:
+          type: boolean
+          description: Indica se houve ganhador (para a rodada como um todo ou regra do sistema)
+          example: true
+        premio:
+          type: number
+          format: double
+          description: Valor total de prêmio distribuído
+          example: 100.0
+        processadoEm:
+          type: string
+          format: date-time
+      required: [id, idJogo, combinacao, ganhou, premio]
+    ResultadoCreate:
+      type: object
+      properties:
+        idJogo: { type: integer, format: int32 }
+        combinacao: { type: string }
+        ganhou: { type: boolean }
+        premio:
+          type: number
+          format: double
+          minimum: 0
+      required: [idJogo, combinacao, ganhou, premio]
+    ResultadoUpdate:
+      allOf:
+        - $ref: '#/components/schemas/ResultadoCreate'
+    ResultadoPatch:
+      type: object
+      additionalProperties: false
+      properties:
+        idJogo: { type: integer, format: int32 }
+        combinacao: { type: string }
+        ganhou: { type: boolean }
+        premio: { type: number, format: double, minimum: 0 }
+
+    # ---------- ERROS ----------
+    ApiError:
+      type: object
+      properties:
+        code:
+          type: string
+          description: Código de erro semântico
+          example: VALIDATION_ERROR
+        message:
+          type: string
+          description: Mensagem explicativa
+          example: "Campo 'email' é obrigatório."
+        details:
+          type: object
+          additionalProperties: true
+      required: [code, message]
